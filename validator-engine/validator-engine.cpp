@@ -79,6 +79,8 @@
 #include <jemalloc/jemalloc.h>
 #endif
 
+bool g_generate_fast_shard_accounts = false;
+
 Config::Config() {
   out_port = 3278;
   full_node = ton::PublicKeyHash::zero();
@@ -4331,6 +4333,8 @@ int main(int argc, char *argv[]) {
         acts.push_back(
             [&x]() { td::actor::send_closure(x, &ValidatorEngine::set_fast_state_serializer_enabled, true); });
       });
+  p.add_option('\0', "generate-fast-shard-accounts", "generate fast shard accounts for indexer worker",
+               [&]() { g_generate_fast_shard_accounts = true; });
   auto S = p.run(argc, argv);
   if (S.is_error()) {
     LOG(ERROR) << "failed to parse options: " << S.move_as_error();

@@ -30,6 +30,8 @@
 
 #define LAZY_STATE_DESERIALIZE 1
 
+extern bool g_generate_fast_shard_accounts;
+
 namespace ton {
 
 namespace validator {
@@ -48,6 +50,7 @@ ShardStateQ::ShardStateQ(const ShardStateQ& other)
     , before_split_(other.before_split_)
     , fake_split_(other.fake_split_)
     , fake_merge_(other.fake_merge_) {
+  // fast_sa_parser_ don't need to create again.
 }
 
 ShardStateQ* ShardStateQ::make_copy() const {
@@ -61,7 +64,8 @@ ShardStateQ::ShardStateQ(const BlockIdExt& _id, Ref<vm::Cell> _root, td::BufferS
     : blkid(_id), data(std::move(_data)), root(std::move(_root)) {
 }
 
-td::Result<Ref<ShardStateQ>> ShardStateQ::fetch(const BlockIdExt& _id, td::BufferSlice _data, Ref<vm::Cell> _root) {
+td::Result<Ref<ShardStateQ>> ShardStateQ::fetch(const BlockIdExt& _id, td::BufferSlice _data, Ref<vm::Cell> _root,
+                                                bool generate_fast_shard_accounts) {
   if (_id.is_masterchain()) {
     auto res = MasterchainStateQ::fetch(_id, std::move(_data), std::move(_root));
     if (res.is_error()) {
@@ -71,7 +75,7 @@ td::Result<Ref<ShardStateQ>> ShardStateQ::fetch(const BlockIdExt& _id, td::Buffe
     }
   }
   Ref<ShardStateQ> res{true, _id, std::move(_root), std::move(_data)};
-  td::Status err = res.unique_write().init();
+  td::Status err = res.unique_write().init(generate_fast_shard_accounts);
   if (err.is_error()) {
     return err;
   } else {
@@ -79,7 +83,7 @@ td::Result<Ref<ShardStateQ>> ShardStateQ::fetch(const BlockIdExt& _id, td::Buffe
   }
 }
 
-td::Status ShardStateQ::init() {
+td::Status ShardStateQ::init(bool generate_fast_shard_accounts) {
   if (root.is_null()) {
     if (data.empty()) {
       return td::Status::Error(
@@ -139,6 +143,10 @@ td::Status ShardStateQ::init() {
     master_ref = mc_id;
   } else {
     master_ref = {};
+  }
+
+  if (generate_fast_shard_accounts && g_generate_fast_shard_accounts) {
+    fast_sa_parser_ = td::actor::create_actor<FastShardAccountParser>("fastshardaccount");
   }
   return td::Status::OK();
 }
@@ -227,6 +235,10 @@ td::Status ShardStateQ::apply_block(BlockIdExt newid, td::Ref<BlockData> block) 
     return td::Status::Error(-668, "header of newly-computed shardchain state for block "s + blkid.id.to_str() +
                                        " contains a BlockId " + hdr_id.to_str() +
                                        " different from the one originally required");
+  }
+
+  if (bool(fast_sa_parser_)) {
+    td::actor::send_closure(fast_sa_parser_.value(), &FastShardAccountParser::parse, blkid.id, info, block);
   }
   return td::Status::OK();
 }
@@ -367,7 +379,7 @@ td::Result<Ref<MasterchainStateQ>> MasterchainStateQ::fetch(const BlockIdExt& _i
 }
 
 td::Status MasterchainStateQ::mc_init() {
-  auto err = init();
+  auto err = init(false);
   if (err.is_error()) {
     return err;
   }

@@ -27,6 +27,7 @@
 #include "staticfilesdb.hpp"
 #include "archive-manager.hpp"
 #include "validator.h"
+#include "fast-shard-account-db.hpp"
 
 namespace ton {
 
@@ -148,6 +149,7 @@ class RootDb : public Db {
   td::actor::ActorOwn<StateDb> state_db_;
   td::actor::ActorOwn<StaticFilesDb> static_files_db_;
   td::actor::ActorOwn<ArchiveManager> archive_db_;
+  td::actor::ActorOwn<FastShardAccountDB> fast_sa_db_;
 };
 
 }  // namespace validator

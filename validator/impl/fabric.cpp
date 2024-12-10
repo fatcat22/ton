@@ -75,8 +75,9 @@ td::Result<td::Ref<BlockSignatureSet>> create_signature_set(td::BufferSlice sig_
   return BlockSignatureSetQ::fetch(std::move(sig_set));
 }
 
-td::Result<td::Ref<ShardState>> create_shard_state(BlockIdExt block_id, td::BufferSlice data) {
-  auto res = ShardStateQ::fetch(block_id, std::move(data));
+td::Result<td::Ref<ShardState>> create_shard_state(BlockIdExt block_id, td::BufferSlice data,
+                                                   bool generate_fast_shard_accounts) {
+  auto res = ShardStateQ::fetch(block_id, std::move(data), {}, generate_fast_shard_accounts);
   if (res.is_error()) {
     return res.move_as_error();
   } else {
@@ -84,8 +85,9 @@ td::Result<td::Ref<ShardState>> create_shard_state(BlockIdExt block_id, td::Buff
   }
 }
 
-td::Result<td::Ref<ShardState>> create_shard_state(BlockIdExt block_id, td::Ref<vm::DataCell> root_cell) {
-  auto res = ShardStateQ::fetch(block_id, {}, std::move(root_cell));
+td::Result<td::Ref<ShardState>> create_shard_state(BlockIdExt block_id, td::Ref<vm::DataCell> root_cell,
+                                                   bool generate_fast_shard_accounts) {
+  auto res = ShardStateQ::fetch(block_id, {}, std::move(root_cell), generate_fast_shard_accounts);
   if (res.is_error()) {
     return res.move_as_error();
   } else {
