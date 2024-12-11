@@ -6,7 +6,7 @@ FastShardAccountDB::FastShardAccountDB(std::string db_root_path, bool must_succe
   td::RocksDbOptions db_options;
   db_options.use_direct_reads = true;
 
-  const auto db_path = db_root_path_ + "/fastshardaccount";
+  const auto db_path = db_root_path + "/fastshardaccount";
   const auto dir_status = td::mkdir(db_path);
   if (dir_status.is_error()) {
     LOG(ERROR) << "create fast shard account db path " << dir_status << " failed: " << dir_status.to_string();

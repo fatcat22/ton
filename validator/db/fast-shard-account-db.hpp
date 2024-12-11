@@ -19,8 +19,5 @@ class FastShardAccountDB : public td::actor::Actor {
   size_t format_block_id(const ton::BlockId& id, std::array<char, 64>& buf);
 
  private:
-  std::string db_root_path_;
-
- private:
   std::shared_ptr<td::KeyValue> db_;
 };
