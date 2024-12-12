@@ -26,6 +26,9 @@
 #include "common/checksum.h"
 #include "validator/stats-merger.h"
 #include "td/actor/MultiPromise.h"
+#include "fast-shard-account-db.hpp"
+
+extern bool g_generate_fast_shard_accounts;
 
 namespace ton {
 
@@ -229,11 +232,13 @@ void RootDb::get_block_candidate_by_block_id(BlockIdExt id, td::Promise<BlockCan
 void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
                                td::Promise<td::Ref<ShardState>> promise) {
   if (handle->moved_to_archive()) {
+    state->store_fast_shard_account(fast_sa_db_.get());
     promise.set_value(std::move(state));
     return;
   }
   if (!handle->inited_state_boc()) {
-    auto P = td::PromiseCreator::lambda([b = archive_db_.get(), root_hash = state->root_hash(), handle,
+    auto P = td::PromiseCreator::lambda([b = archive_db_.get(), root_hash = state->root_hash(), old_state = state,
+                                         fast_sa_db = fast_sa_db_.get(), handle,
                                          promise = std::move(promise)](td::Result<td::Ref<vm::DataCell>> R) mutable {
       if (R.is_error()) {
         promise.set_error(R.move_as_error());
@@ -241,7 +246,10 @@ void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
         handle->set_state_root_hash(root_hash);
         handle->set_state_boc();
 
-        auto S = create_shard_state(handle->id(), R.move_as_ok());
+        // state store success, now time to store fast shard account.
+        old_state->store_fast_shard_account(fast_sa_db);
+
+        auto S = create_shard_state(handle->id(), R.move_as_ok(), false);
         S.ensure();
 
         auto P = td::PromiseCreator::lambda(
@@ -270,7 +278,7 @@ void RootDb::get_block_state(ConstBlockHandle handle, td::Promise<td::Ref<ShardS
           if (R.is_error()) {
             promise.set_error(R.move_as_error());
           } else {
-            auto S = create_shard_state(handle->id(), R.move_as_ok());
+            auto S = create_shard_state(handle->id(), R.move_as_ok(), false);
             S.ensure();
             promise.set_value(S.move_as_ok());
           }
@@ -419,6 +427,8 @@ void RootDb::start_up() {
   state_db_ = td::actor::create_actor<StateDb>("statedb", actor_id(this), root_path_ + "/state/");
   static_files_db_ = td::actor::create_actor<StaticFilesDb>("staticfilesdb", actor_id(this), root_path_ + "/static/");
   archive_db_ = td::actor::create_actor<ArchiveManager>("archive", actor_id(this), root_path_, opts_);
+  fast_sa_db_ =
+      td::actor::create_actor<FastShardAccountDB>("fastshardaccountdb", root_path_, g_generate_fast_shard_accounts);
 }
 
 void RootDb::archive(BlockHandle handle, td::Promise<td::Unit> promise) {

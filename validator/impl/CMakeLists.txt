@@ -5,6 +5,8 @@ if (NOT OPENSSL_FOUND)
 endif()
 
 set(TON_VALIDATOR_SOURCE
+  fast-shard-account-parser.cpp
+  fast-shard-account-serde.cpp
   accept-block.cpp
   block.cpp
   candidates-buffer.cpp
