@@ -52,12 +52,11 @@ class ShardStateQ : virtual public ShardState {
   ShardStateQ(ShardStateQ&& other) = default;
 
  public:
-  td::Status init(bool generate_fast_shard_accounts = false);
+  td::Status init();
   ShardStateQ(const BlockIdExt& _id, td::BufferSlice _data);
   ShardStateQ(const BlockIdExt& _id, Ref<vm::Cell> _root, td::BufferSlice _data = {});
   virtual ~ShardStateQ() = default;
-  static td::Result<Ref<ShardStateQ>> fetch(const BlockIdExt& _id, td::BufferSlice _data, Ref<vm::Cell> _root = {},
-                                            bool generate_fast_shard_accounts = false);
+  static td::Result<Ref<ShardStateQ>> fetch(const BlockIdExt& _id, td::BufferSlice _data, Ref<vm::Cell> _root = {});
   bool disable_boc() const override {
     return false;
   }
@@ -99,7 +98,7 @@ class ShardStateQ : virtual public ShardState {
   td::Result<std::pair<Ref<ShardState>, Ref<ShardState>>> split() const override;
   td::Result<td::BufferSlice> serialize() const override;
   td::Status serialize_to_file(td::FileFd& fd) const override;
-  void store_fast_shard_account(td::actor::ActorId<FastShardAccountDB> db) const override {
+  void store_fast_shard_account(td::actor::ActorId<FastShardAccountDBFile> db) const override {
     if (bool(fast_sa_parser_)) {
       td::actor::send_closure(fast_sa_parser_.value(), &FastShardAccountParser::set_db, std::move(db));
     }

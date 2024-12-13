@@ -27,7 +27,7 @@
 #include "vm/cells.h"
 #include "proof.h"
 
-class FastShardAccountDB;
+class FastShardAccountDBFile;
 
 namespace ton {
 
@@ -61,7 +61,7 @@ class ShardState : public td::CntObject {
   virtual td::Result<td::BufferSlice> serialize() const = 0;
   virtual td::Status serialize_to_file(td::FileFd& fd) const = 0;
 
-  virtual void store_fast_shard_account(td::actor::ActorId<FastShardAccountDB> db) const {
+  virtual void store_fast_shard_account(td::actor::ActorId<FastShardAccountDBFile> db) const {
     // default do nothing
   }
 };

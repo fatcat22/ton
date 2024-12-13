@@ -13,6 +13,10 @@ FastShardAccountDB::FastShardAccountDB(std::string db_root_path, bool must_succe
   }
 
   auto r_rocks_db = td::RocksDb::open(db_path, std::move(db_options));
+  if (r_rocks_db.is_error()) {
+    LOG(ERROR) << "open fast shard account in '" << db_path << "' failed: " << r_rocks_db.error().to_string();
+  }
+
   if (must_success || r_rocks_db.is_ok()) {
     db_ = std::make_shared<td::RocksDb>(r_rocks_db.move_as_ok());
   }

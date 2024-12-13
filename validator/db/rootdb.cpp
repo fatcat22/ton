@@ -26,7 +26,7 @@
 #include "common/checksum.h"
 #include "validator/stats-merger.h"
 #include "td/actor/MultiPromise.h"
-#include "fast-shard-account-db.hpp"
+#include "fast-shard-account-db-file.hpp"
 
 extern bool g_generate_fast_shard_accounts;
 
@@ -249,7 +249,7 @@ void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
         // state store success, now time to store fast shard account.
         old_state->store_fast_shard_account(fast_sa_db);
 
-        auto S = create_shard_state(handle->id(), R.move_as_ok(), false);
+        auto S = create_shard_state(handle->id(), R.move_as_ok());
         S.ensure();
 
         auto P = td::PromiseCreator::lambda(
@@ -278,7 +278,7 @@ void RootDb::get_block_state(ConstBlockHandle handle, td::Promise<td::Ref<ShardS
           if (R.is_error()) {
             promise.set_error(R.move_as_error());
           } else {
-            auto S = create_shard_state(handle->id(), R.move_as_ok(), false);
+            auto S = create_shard_state(handle->id(), R.move_as_ok());
             S.ensure();
             promise.set_value(S.move_as_ok());
           }
@@ -428,7 +428,7 @@ void RootDb::start_up() {
   static_files_db_ = td::actor::create_actor<StaticFilesDb>("staticfilesdb", actor_id(this), root_path_ + "/static/");
   archive_db_ = td::actor::create_actor<ArchiveManager>("archive", actor_id(this), root_path_, opts_);
   fast_sa_db_ =
-      td::actor::create_actor<FastShardAccountDB>("fastshardaccountdb", root_path_, g_generate_fast_shard_accounts);
+      td::actor::create_actor<FastShardAccountDBFile>("fastshardaccountdb", root_path_, g_generate_fast_shard_accounts);
 }
 
 void RootDb::archive(BlockHandle handle, td::Promise<td::Unit> promise) {

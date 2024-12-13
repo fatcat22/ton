@@ -6,7 +6,7 @@
 #include "interfaces/block.h"
 #include "crypto/common/refcnt.hpp"
 #include "tdutils/td/utils/optional.h"
-#include "db/fast-shard-account-db.hpp"
+#include "db/fast-shard-account-db-file.hpp"
 
 class FastShardAccountParser : public td::actor::Actor {
  public:
@@ -14,7 +14,7 @@ class FastShardAccountParser : public td::actor::Actor {
 
   void parse(ton::BlockId id, block::gen::ShardStateUnsplit::Record state_record,
              td::Ref<ton::validator::BlockData> block);
-  void set_db(td::actor::ActorId<FastShardAccountDB> db);
+  void set_db(td::actor::ActorId<FastShardAccountDBFile> db);
 
  private:
   void try_store();
@@ -29,5 +29,5 @@ class FastShardAccountParser : public td::actor::Actor {
   bool stored_ = false;
   ton::BlockId id_;
   td::optional<std::string> serialized_data_;
-  td::optional<td::actor::ActorId<FastShardAccountDB>> db_;
+  td::optional<td::actor::ActorId<FastShardAccountDBFile>> db_;
 };

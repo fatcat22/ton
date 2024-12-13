@@ -32,6 +32,7 @@ set(VALIDATOR_DB_SOURCE
   db/package.cpp
 
   db/fast-shard-account-db.cpp
+  db/fast-shard-account-db-file.cpp
 )
 
 set(VALIDATOR_HEADERS
