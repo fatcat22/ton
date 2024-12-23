@@ -77,7 +77,7 @@ td::Result<std::set<td::Bits256>> FastShardAccountParser::extract_addresses(
       }
 
       if (value.is_null()) {
-        LOG(ERROR) << id.to_str() << "value is null, exist. address count: " << addresses.size();
+        LOG(INFO) << "find " << addresses.size() << " address for " << id.to_str();
         eof = true;
         break;
       }
@@ -106,8 +106,7 @@ td::Result<std::map<td::Bits256, block::gen::ShardAccount::Record>> FastShardAcc
   for (auto entry : addresses) {
     auto shard_account_csr = accounts_dict.lookup(entry);
     if (shard_account_csr.is_null()) {
-      // TODO:
-      LOG(ERROR) << "lookup_ref return null";
+      LOG(DEBUG) << "lookup_ref return null";
     } else {
       block::gen::ShardAccount::Record acc_info;
       CHECK(tlb::csr_unpack(shard_account_csr, acc_info));

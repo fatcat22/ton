@@ -17,7 +17,7 @@ class FastShardAccountDBFile : public td::actor::Actor {
 
  private:
   std::string gen_file_path(const ton::BlockId& id);
-  size_t format_block_id(const ton::BlockId& id, std::array<char, 64>& buf);
+  static size_t format_block_id(const ton::BlockId& id, std::array<char, 64>& buf);
 
  private:
   std::string db_path_;
