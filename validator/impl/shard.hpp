@@ -98,7 +98,7 @@ class ShardStateQ : virtual public ShardState {
   td::Result<std::pair<Ref<ShardState>, Ref<ShardState>>> split() const override;
   td::Result<td::BufferSlice> serialize() const override;
   td::Status serialize_to_file(td::FileFd& fd) const override;
-  void store_fast_shard_account(td::actor::ActorId<FastShardAccountDBFile> db) const override {
+  void store_fast_shard_account(td::actor::ActorId<FastShardAccountDB> db) const override {
     if (bool(fast_sa_parser_)) {
       td::actor::send_closure(fast_sa_parser_.value(), &FastShardAccountParser::set_db, std::move(db));
     }

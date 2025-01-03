@@ -66,7 +66,6 @@ td::Result<std::string> FastShardAccountDB::read(const ton::BlockId& id) {
 
 void FastShardAccountDB::erase(ton::BlockId id) {
   if (nullptr == db_) {
-    LOG(ERROR) << "fast shard account db is null";
     return;
   }
 

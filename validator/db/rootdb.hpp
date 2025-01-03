@@ -27,7 +27,7 @@
 #include "staticfilesdb.hpp"
 #include "archive-manager.hpp"
 #include "validator.h"
-#include "fast-shard-account-db-file.hpp"
+#include "fast-shard-account-db.hpp"
 
 namespace ton {
 
@@ -142,6 +142,7 @@ class RootDb : public Db {
   void add_persistent_state_description(td::Ref<PersistentStateDescription> desc, td::Promise<td::Unit> promise) override;
   void get_persistent_state_descriptions(td::Promise<std::vector<td::Ref<PersistentStateDescription>>> promise) override;
 
+  void erase_fast_shard_accounts(BlockId blkid);
 
  private:
   td::actor::ActorId<ValidatorManager> validator_manager_;
@@ -152,7 +153,7 @@ class RootDb : public Db {
   td::actor::ActorOwn<StateDb> state_db_;
   td::actor::ActorOwn<StaticFilesDb> static_files_db_;
   td::actor::ActorOwn<ArchiveManager> archive_db_;
-  td::actor::ActorOwn<FastShardAccountDBFile> fast_sa_db_;
+  td::actor::ActorOwn<FastShardAccountDB> fast_sa_db_;
 };
 
 }  // namespace validator

@@ -479,6 +479,7 @@ void CellDbIn::gc_cont2(BlockHandle handle) {
             last_deleted_mc_state_ = handle->id().seqno();
           }
           LOG(DEBUG) << "Deleted state " << handle->id().to_str();
+          td::actor::send_closure(root_db_, &RootDb::erase_fast_shard_accounts, handle->id().id);
           timer_finish.reset();
           timer_all.reset();
           release_db();

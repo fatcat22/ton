@@ -32,7 +32,7 @@ void FastShardAccountParser::parse(ton::BlockId id, block::gen::ShardStateUnspli
   try_store();
 }
 
-void FastShardAccountParser::set_db(td::actor::ActorId<FastShardAccountDBFile> db) {
+void FastShardAccountParser::set_db(td::actor::ActorId<FastShardAccountDB> db) {
   if (!db_) {
     db_ = db;
   }
@@ -45,7 +45,7 @@ void FastShardAccountParser::try_store() {
     return;
   }
 
-  td::actor::send_closure(db_.value(), &FastShardAccountDBFile::store, id_, serialized_data_.unwrap());
+  td::actor::send_closure(db_.value(), &FastShardAccountDB::store, id_, serialized_data_.unwrap());
   stored_ = true;
 }
 

@@ -428,7 +428,7 @@ void RootDb::start_up() {
   static_files_db_ = td::actor::create_actor<StaticFilesDb>("staticfilesdb", actor_id(this), root_path_ + "/static/");
   archive_db_ = td::actor::create_actor<ArchiveManager>("archive", actor_id(this), root_path_, opts_);
   fast_sa_db_ =
-      td::actor::create_actor<FastShardAccountDBFile>("fastshardaccountdb", root_path_, g_generate_fast_shard_accounts);
+      td::actor::create_actor<FastShardAccountDB>("fastshardaccountdb", root_path_, g_generate_fast_shard_accounts);
 }
 
 void RootDb::archive(BlockHandle handle, td::Promise<td::Unit> promise) {
@@ -538,6 +538,10 @@ void RootDb::add_persistent_state_description(td::Ref<PersistentStateDescription
 
 void RootDb::get_persistent_state_descriptions(td::Promise<std::vector<td::Ref<PersistentStateDescription>>> promise) {
   td::actor::send_closure(state_db_, &StateDb::get_persistent_state_descriptions, std::move(promise));
+}
+
+void RootDb::erase_fast_shard_accounts(BlockId blkid) {
+  td::actor::send_closure(fast_sa_db_, &FastShardAccountDB::erase, blkid);
 }
 
 }  // namespace validator
